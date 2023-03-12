@@ -1,0 +1,772 @@
+initialize()
+{
+	initializeSLiMModelType("nonWF");
+	defineConstant("infectionSiteNum", 2);
+	defineConstant("startingSalmonella", 1000);
+	
+	// Dosing regime. NB it can only occur after the second generation
+	// Bactericidal
+	defineConstant("BactericidalOralDose", 20);
+	defineConstant("BactericidalOralSingle", c()); // a vector of times when the drug is taken
+	defineConstant("BactericidalOralRepeat", 96); // repeated doses; in multiplies of 5min
+	defineConstant("BactericidalOralSkipped", c(192,480,768)); // a vector of times when the dose was skipped; overwrites Repeat and Single
+	defineConstant("BactericidalIntravenousDose", 20);
+	defineConstant("BactericidalIntravenousSingle", c()); // a vector of times when the drug is taken
+	defineConstant("BactericidalIntravenousRepeat", 0); // repeated doses; in multiplies of 5min
+	defineConstant("BactericidalIntravenousSkipped", c()); // a vector of times when the dose was skipped; overwrites Repeat and Single
+	
+	// Bacteriostatic
+	defineConstant("StaticOralDose", 20);
+	defineConstant("StaticOralSingle", c()); // a vector of times when the drug is taken
+	defineConstant("StaticOralRepeat", 0); // repeated doses; in multiplies of 5min
+	defineConstant("StaticOralSkipped", c()); // a vector of times when the dose was skipped; overwrites Repeat and Single
+	defineConstant("StaticIntravenousDose", 20);
+	defineConstant("StaticIntravenousSingle", c()); // a vector of times when the drug is taken
+	defineConstant("StaticIntravenousRepeat", 0); // repeated doses; in multiplies of 5min
+	defineConstant("StaticIntravenousSkipped", c()); // a vector of times when the dose was skipped; overwrites Repeat and Single
+	
+	// tags
+	defineConstant("bacterium", 1);
+	defineConstant("Bactericidal", 2);
+	defineConstant("Static", 3);
+	defineConstant("None", 4);
+	
+	// Salmonella spread
+	defineConstant("SalmonellaIntestineToLymphoid", 0.0007);
+	defineConstant("SalmonellaLymphoidToLiver", 0.05);
+	defineConstant("SalmonellaLymphoidToSpleen", 0.01);
+	defineConstant("SalmonellaLiverToBlood", 0.45);
+	defineConstant("SalmonellaBloodToSpleen", 0.03);
+	defineConstant("SalmonellaBloodToLiver", 0.05);
+	defineConstant("SalmonellaSpleenToLiver", 0.40);
+	defineConstant("SalmonellaBloodToMeninges", 0.0014);
+	defineConstant("SalmonellaMeningesToBlood", 0.005);
+	defineConstant("SalmonellaOrganToSite", 0.05);
+	defineConstant("SalmonellaSiteToOrgan", 0.05);
+	
+	// Bactericidal antibiotic spread
+	defineConstant("AntibioticBactericidalIntestineToLymphoid", 0.013);
+	defineConstant("AntibioticBactericidalIntestineToSpleen", 0.001);
+	defineConstant("AntibioticBactericidalLymphoidToLiver", 0.1);
+	defineConstant("AntibioticBactericidalLymphoidToSpleen", 0.02);
+	defineConstant("AntibioticBactericidalLiverToBlood", 0.45);
+	defineConstant("AntibioticBactericidalBloodToSpleen", 0.03);
+	defineConstant("AntibioticBactericidalBloodToLiver", 0.05);
+	defineConstant("AntibioticBactericidalSpleenToLiver", 0.40);
+	defineConstant("AntibioticBactericidalBloodToMeninges", 0.005);
+	defineConstant("AntibioticBactericidalMeningesToBlood", 0.05);
+	defineConstant("AntibioticBactericidalOrganToSite", 0.10);
+	defineConstant("AntibioticBactericidalSiteToOrgan", 0.05);
+	defineConstant("AntibioticBactericidalBloodToLymphoid", 0.15);
+	
+	// Bacteriostatic antibiotic spread
+	defineConstant("AntibioticStaticIntestineToLymphoid", 0.017);
+	defineConstant("AntibioticStaticIntestineToSpleen", 0.001);
+	defineConstant("AntibioticStaticLymphoidToLiver", 0.1);
+	defineConstant("AntibioticStaticLymphoidToSpleen", 0.02);
+	defineConstant("AntibioticStaticLiverToBlood", 0.45);
+	defineConstant("AntibioticStaticBloodToSpleen", 0.03);
+	defineConstant("AntibioticStaticBloodToLiver", 0.05);
+	defineConstant("AntibioticStaticSpleenToLiver", 0.40);
+	defineConstant("AntibioticStaticBloodToMeninges", 0.001);
+	defineConstant("AntibioticStaticMeningesToBlood", 0.003);
+	defineConstant("AntibioticStaticOrganToSite", 0.05);
+	defineConstant("AntibioticStaticSiteToOrgan", 0.05);
+	defineConstant("AntibioticStaticBloodToLymphoid", 0.15);
+	
+	// Salmonella reproduction rate
+	defineConstant("SalmonellaLymphoidReproductionRate", 0.0072);
+	defineConstant("SalmonellaLiverReproductionRate", 0.0072);
+	defineConstant("SalmonellaSpleenReproductionRate", 0.0072);
+	defineConstant("SalmonellaMeningesReproductionRate", 0.0036);
+	
+	// Antibiotic strength
+	defineConstant("AntibioticBactericidalStrength", 0.5); // can be used to represent resistance development
+	defineConstant("AntibioticStaticStrength", 0.5);
+	
+	// Bacterial death rates
+	defineConstant("DeathIntestine", 0.0); // accounted for in the intestine transport constant
+	defineConstant("DeathBlood", 0.0002);
+	defineConstant("DeathLymphoid", 0.0002);
+	defineConstant("DeathLymphoidSite", 0.0003);
+	defineConstant("DeathLiver", 0.0002);
+	defineConstant("DeathLiverSite", 0.0003);
+	defineConstant("DeathSpleen", 0.0002);
+	defineConstant("DeathSpleenSite", 0.0003);
+	defineConstant("DeathMeninges", 0.0002);
+	defineConstant("DeathMeningesSite", 0.0003);
+	
+	// Antibiotic (bactericidal) metabolism
+	defineConstant("MetabolismBactericidalIntestine", 0.0);
+	defineConstant("MetabolismBactericidalBlood", 0.08);
+	defineConstant("MetabolismBactericidalLymphoid", 0.01);
+	defineConstant("MetabolismBactericidalLymphoidSite", 0.01);
+	defineConstant("MetabolismBactericidalLiver", 0.05);
+	defineConstant("MetabolismBactericidalLiverSite", 0.05);
+	defineConstant("MetabolismBactericidalSpleen", 0.01);
+	defineConstant("MetabolismBactericidalSpleenSite", 0.01);
+	defineConstant("MetabolismBactericidalMeninges", 0.01);
+	defineConstant("MetabolismBactericidalMeningesSite", 0.01);
+	
+	// Antibiotic (bacteriostatic) metabolism	
+	defineConstant("MetabolismStaticIntestine", 0.0);
+	defineConstant("MetabolismStaticBlood", 0.02);
+	defineConstant("MetabolismStaticLymphoid", 0.0005);
+	defineConstant("MetabolismStaticLymphoidSite", 0.0005);
+	defineConstant("MetabolismStaticLiver", 0.03);
+	defineConstant("MetabolismStaticLiverSite", 0.03);
+	defineConstant("MetabolismStaticSpleen", 0.0005);
+	defineConstant("MetabolismStaticSpleenSite", 0.0005);
+	defineConstant("MetabolismStaticMeninges", 0.0005);
+	defineConstant("MetabolismStaticMeningesSite", 0.0005);
+
+	
+	//not needed for the model but necessary for the script to run
+	initializeMutationType("m1", 0.5, "f", 0.0);
+	m1.convertToSubstitution = T;
+	initializeGenomicElementType("g1", m1, 1.0);
+	initializeGenomicElement(g1, 0, 1);
+	initializeMutationRate(0);
+	initializeRecombinationRate(0);
+}
+
+1
+{
+	new = sim.addSubpop(1, startingSalmonella+1); // intestine
+	new.individuals.tag = bacterium;
+	empty = new.individuals[new.individuals.index==0];
+	empty.tag = None;
+	empty.color = "black";
+	for (i in 1:(1 + 4 * (infectionSiteNum + 1)))
+	{
+		sim.addSubpop(i + 1, 0);
+	}
+}	
+1 early()
+{
+sim.setValue("Max2",0);
+sim.setValue("Finished", 0);
+}
+
+72 reproduction()
+{
+	p1.individuals[p1.individuals.tag == bacterium].fitnessScaling = 0;
+}
+
+2: reproduction() // division
+{
+	if (individual.index == 0)
+	{
+		id = individual.subpopulation.id;
+		inds = sim.subpopulations[id - 1].individuals;
+		bact = inds[inds.tag == bacterium];
+		antistatic = inds[inds.tag == Static];
+		if (bact.size())
+		{
+			scalingFactor = bact.size() / (bact.size() + AntibioticStaticStrength * antistatic.size());
+		}
+		else
+		{
+			scalingFactor = 0.0;
+		}
+		if (id > 6) // infection sites
+		{
+			site = floor((id - 7) / infectionSiteNum);
+			if (site == 0)
+				rate = SalmonellaLymphoidReproductionRate;
+			else if (site == 1)
+				rate = SalmonellaLiverReproductionRate;
+			else if (site == 2)
+				rate = SalmonellaSpleenReproductionRate;
+			else if (site == 3)
+				rate = SalmonellaMeningesReproductionRate;
+			rate = rate * scalingFactor;
+			bacteriaReproduction(id, rate);
+		}
+	}
+	
+	if (individual.index == 0 & individual.subpopulation == p1)
+	{
+		gen = sim.generation;
+		
+		/// Add antibiotics
+		if (BactericidalOralRepeat != 0 & gen % BactericidalOralRepeat == 0 & !any(gen == c(BactericidalOralSkipped, 0)))
+		{
+			addAntibiotic(Bactericidal, BactericidalOralDose, p1);
+		}
+		if (any(gen == c(BactericidalOralSingle, 0)) & !any(gen == c(BactericidalOralSkipped, 0)))
+		{
+			addAntibiotic(Bactericidal, BactericidalOralDose, p1);
+		}
+		if (StaticOralRepeat != 0 & gen % StaticOralRepeat == 0 & !any(gen == c(StaticOralSkipped, 0)))
+		{
+			addAntibiotic(Static, StaticOralDose, p1);
+		}
+		if (any(gen == c(StaticOralSingle, 0)) & !any(gen == c(StaticOralSkipped, 0)))
+		{
+			addAntibiotic(Static, StaticOralDose, p1);
+		}
+		if (BactericidalIntravenousRepeat != 0 & gen % BactericidalIntravenousRepeat == 0 & !any(gen == c(BactericidalIntravenousSkipped, 0)))
+		{
+			addAntibiotic(Bactericidal, BactericidalIntravenousDose, p2);
+		}
+		if (any(gen == c(BactericidalIntravenousSingle, 0)) & !any(gen == c(BactericidalIntravenousSkipped, 0)))
+		{
+			addAntibiotic(Bactericidal, BactericidalIntravenousDose, p2);
+		}
+		if (StaticIntravenousRepeat != 0 & gen % StaticIntravenousRepeat == 0 & !any(gen == c(StaticIntravenousSkipped, 0)))
+		{
+			addAntibiotic(Static, StaticIntravenousDose, p2);
+		}
+		if (any(gen == c(StaticIntravenousSingle, 0)) & !any(gen == c(StaticIntravenousSkipped, 0)))
+		{
+			addAntibiotic(Static, StaticIntravenousDose, p2);
+		}
+		
+		/// Degrade antibiotics
+		// Remove bactericidals
+		if ((gen - 72) % BactericidalOralRepeat == 0)
+		{
+			p1.individuals[p1.individuals.tag == Bactericidal].fitnessScaling = 0;
+		}
+		
+		// Remove statics
+		if ((gen - 72) % StaticOralRepeat == 0)
+		{
+			p1.individuals[p1.individuals.tag == Static].fitnessScaling = 0;
+		}
+	}
+}
+
+2: late() // movement
+{
+	/// Movement - Bacteria
+	migrants = NULL;
+	newSubpopID = NULL;
+	
+	// intestine
+	inds = sim.subpopulations[0].individuals;
+	inds = inds[inds.tag == bacterium];
+	rates = c(SalmonellaIntestineToLymphoid);
+	destinations = c(3);
+	M = sum(rates);
+	numMigrants = rbinom(1, inds.size(), M);
+	if (numMigrants)
+	{
+		newMigrants = sample(inds, numMigrants);
+		newSubpopID = c(newSubpopID, sample(destinations, size=numMigrants, replace=T, weights=rates));
+		migrants = c(migrants, newMigrants);
+	}
+	
+	// blood
+	inds = sim.subpopulations[1].individuals;
+	inds = inds[inds.tag == bacterium];
+	rates = c(SalmonellaBloodToLiver, SalmonellaBloodToSpleen, SalmonellaBloodToMeninges);
+	destinations = c(4, 5, 6);
+	M = sum(rates);
+	numMigrants = rbinom(1, inds.size(), M);
+	if (numMigrants)
+	{
+		newMigrants = sample(inds, numMigrants);
+		newSubpopID = c(newSubpopID, sample(destinations, size=numMigrants, replace=T, weights=rates));
+		migrants = c(migrants, newMigrants);
+	}
+	
+	// lymphoid
+	inds = sim.subpopulations[2].individuals;
+	inds = inds[inds.tag == bacterium];
+	rates = c(SalmonellaLymphoidToLiver, SalmonellaLymphoidToSpleen, rep(SalmonellaOrganToSite, infectionSiteNum));
+	destinations = c(4, 5, 7:(7 + infectionSiteNum - 1));
+	M = sum(rates);
+	numMigrants = rbinom(1, inds.size(), M);
+	if (numMigrants)
+	{
+		newMigrants = sample(inds, numMigrants);
+		newSubpopID = c(newSubpopID, sample(destinations, size=numMigrants, replace=T, weights=rates));
+		migrants = c(migrants, newMigrants);
+	}
+	
+	// liver
+	inds = sim.subpopulations[3].individuals;
+	inds = inds[inds.tag == bacterium];
+	rates = c(SalmonellaLiverToBlood, rep(SalmonellaOrganToSite, infectionSiteNum));
+	destinations = c(2, (7 + infectionSiteNum):(7 + 2 * infectionSiteNum - 1));
+	M = sum(rates);
+	numMigrants = rbinom(1, inds.size(), M);
+	if (numMigrants)
+	{
+		newMigrants = sample(inds, numMigrants);
+		newSubpopID = c(newSubpopID, sample(destinations, size=numMigrants, replace=T, weights=rates));
+		migrants = c(migrants, newMigrants);
+	}
+	
+	// spleen
+	inds = sim.subpopulations[4].individuals;
+	inds = inds[inds.tag == bacterium];
+	rates = c(SalmonellaSpleenToLiver, rep(SalmonellaOrganToSite, infectionSiteNum));
+	destinations = c(4, (7 + infectionSiteNum * 2):(7 + 3 * infectionSiteNum - 1));
+	M = sum(rates);
+	numMigrants = rbinom(1, inds.size(), M);
+	if (numMigrants)
+	{
+		newMigrants = sample(inds, numMigrants);
+		newSubpopID = c(newSubpopID, sample(destinations, size=numMigrants, replace=T, weights=rates));
+		migrants = c(migrants, newMigrants);
+	}
+	
+	// meninges
+	inds = sim.subpopulations[5].individuals;
+	inds = inds[inds.tag == bacterium];
+	rates = c(SalmonellaMeningesToBlood, rep(SalmonellaOrganToSite, infectionSiteNum));
+	destinations = c(2, (7 + 3 * infectionSiteNum):(7 + 4 * infectionSiteNum - 1));
+	M = sum(rates);
+	numMigrants = rbinom(1, inds.size(), M);
+	if (numMigrants)
+	{
+		newMigrants = sample(inds, numMigrants);
+		newSubpopID = c(newSubpopID, sample(destinations, size=numMigrants, replace=T, weights=rates));
+		migrants = c(migrants, newMigrants);
+	}
+	
+	// infection sites
+	for (i in 1:(4 * infectionSiteNum))
+	{
+		inds = sim.subpopulations[5 + i].individuals;
+		inds = inds[inds.tag == bacterium];
+		site = floor((i - 1) / infectionSiteNum);
+		if (site == 0)
+			destinations = 3;
+		else if (site == 1)
+			destinations = 4;
+		else if (site == 2)
+			destinations = 5;
+		else if (site == 3)
+			destinations = 6;
+		rates = c(SalmonellaSiteToOrgan);
+		M = sum(rates);
+		numMigrants = rbinom(1, inds.size(), M);
+		if (numMigrants)
+		{
+			newMigrants = sample(inds, numMigrants);
+			newSubpopID = c(newSubpopID, sample(destinations, size=numMigrants, replace=T, weights=rates));
+			migrants = c(migrants, newMigrants);
+		}
+	}
+	
+	// actual migration
+	if (!isNULL(migrants))
+	{
+		for (subpop in sim.subpopulations)
+			subpop.takeMigrants(migrants[newSubpopID == subpop.id]);
+	}
+	
+	/// Movement - Bactericidal
+	migrants = NULL;
+	newSubpopID = NULL;
+	
+	// intestine
+	inds = sim.subpopulations[0].individuals;
+	inds = inds[inds.tag == Bactericidal];
+	rates = c(AntibioticBactericidalIntestineToLymphoid, AntibioticBactericidalIntestineToSpleen);
+	destinations = c(3, 5);
+	M = sum(rates);
+	numMigrants = rbinom(1, inds.size(), M);
+	if (numMigrants)
+	{
+		newMigrants = sample(inds, numMigrants);
+		newSubpopID = c(newSubpopID, sample(destinations, size=numMigrants, replace=T, weights=rates));
+		migrants = c(migrants, newMigrants);
+	}
+	
+	// blood
+	inds = sim.subpopulations[1].individuals;
+	inds = inds[inds.tag == Bactericidal];
+	rates = c(AntibioticBactericidalBloodToLymphoid, AntibioticBactericidalBloodToLiver, AntibioticBactericidalBloodToSpleen, AntibioticBactericidalBloodToMeninges);
+	destinations = c(3, 4, 5, 6);
+	M = sum(rates);
+	numMigrants = rbinom(1, inds.size(), M);
+	if (numMigrants)
+	{
+		newMigrants = sample(inds, numMigrants);
+		newSubpopID = c(newSubpopID, sample(destinations, size=numMigrants, replace=T, weights=rates));
+		migrants = c(migrants, newMigrants);
+	}
+	
+	// lymphoid
+	inds = sim.subpopulations[2].individuals;
+	inds = inds[inds.tag == Bactericidal];
+	rates = c(AntibioticBactericidalLymphoidToLiver, AntibioticBactericidalLymphoidToSpleen, rep(AntibioticBactericidalOrganToSite, infectionSiteNum));
+	destinations = c(4, 5, 7:(7 + infectionSiteNum - 1));
+	M = sum(rates);
+	numMigrants = rbinom(1, inds.size(), M);
+	if (numMigrants)
+	{
+		newMigrants = sample(inds, numMigrants);
+		newSubpopID = c(newSubpopID, sample(destinations, size=numMigrants, replace=T, weights=rates));
+		migrants = c(migrants, newMigrants);
+	}
+	
+	// liver
+	inds = sim.subpopulations[3].individuals;
+	inds = inds[inds.tag == Bactericidal];
+	rates = c(AntibioticBactericidalLiverToBlood, rep(AntibioticBactericidalOrganToSite, infectionSiteNum));
+	destinations = c(2, (7 + infectionSiteNum):(7 + 2 * infectionSiteNum - 1));
+	M = sum(rates);
+	numMigrants = rbinom(1, inds.size(), M);
+	if (numMigrants)
+	{
+		newMigrants = sample(inds, numMigrants);
+		newSubpopID = c(newSubpopID, sample(destinations, size=numMigrants, replace=T, weights=rates));
+		migrants = c(migrants, newMigrants);
+	}
+	
+	// spleen
+	inds = sim.subpopulations[4].individuals;
+	inds = inds[inds.tag == Bactericidal];
+	rates = c(AntibioticBactericidalSpleenToLiver, rep(AntibioticBactericidalOrganToSite, infectionSiteNum));
+	destinations = c(4, (7 + infectionSiteNum * 2):(7 + 3 * infectionSiteNum - 1));
+	M = sum(rates);
+	numMigrants = rbinom(1, inds.size(), M);
+	if (numMigrants)
+	{
+		newMigrants = sample(inds, numMigrants);
+		newSubpopID = c(newSubpopID, sample(destinations, size=numMigrants, replace=T, weights=rates));
+		migrants = c(migrants, newMigrants);
+	}
+	
+	// meninges
+	inds = sim.subpopulations[5].individuals;
+	inds = inds[inds.tag == Bactericidal];
+	rates = c(AntibioticBactericidalMeningesToBlood, rep(AntibioticBactericidalOrganToSite, infectionSiteNum));
+	destinations = c(2, (7 + 3 * infectionSiteNum):(7 + 4 * infectionSiteNum - 1));
+	M = sum(rates);
+	numMigrants = rbinom(1, inds.size(), M);
+	if (numMigrants)
+	{
+		newMigrants = sample(inds, numMigrants);
+		newSubpopID = c(newSubpopID, sample(destinations, size=numMigrants, replace=T, weights=rates));
+		migrants = c(migrants, newMigrants);
+	}
+	
+	// infection sites
+	for (i in 1:(4 * infectionSiteNum))
+	{
+		inds = sim.subpopulations[5 + i].individuals;
+		inds = inds[inds.tag == Bactericidal];
+		site = floor((i - 1) / infectionSiteNum);
+		if (site == 0)
+			destinations = 3;
+		else if (site == 1)
+			destinations = 4;
+		else if (site == 2)
+			destinations = 5;
+		else if (site == 3)
+			destinations = 6;
+		rates = c(AntibioticBactericidalSiteToOrgan);
+		M = sum(rates);
+		numMigrants = rbinom(1, inds.size(), M);
+		if (numMigrants)
+		{
+			newMigrants = sample(inds, numMigrants);
+			newSubpopID = c(newSubpopID, sample(destinations, size=numMigrants, replace=T, weights=rates));
+			migrants = c(migrants, newMigrants);
+		}
+	}
+	
+	// actual migration
+	if (!isNULL(migrants))
+	{
+		for (subpop in sim.subpopulations)
+			subpop.takeMigrants(migrants[newSubpopID == subpop.id]);
+	}
+	
+	/// Movement - Bacteriostatic
+	migrants = NULL;
+	newSubpopID = NULL;
+	
+	// intestine
+	inds = sim.subpopulations[0].individuals;
+	inds = inds[inds.tag == Static];
+	rates = c(AntibioticStaticIntestineToLymphoid, AntibioticStaticIntestineToSpleen);
+	destinations = c(3, 5);
+	M = sum(rates);
+	numMigrants = rbinom(1, inds.size(), M);
+	if (numMigrants)
+	{
+		newMigrants = sample(inds, numMigrants);
+		newSubpopID = c(newSubpopID, sample(destinations, size=numMigrants, replace=T, weights=rates));
+		migrants = c(migrants, newMigrants);
+	}
+	
+	// blood
+	inds = sim.subpopulations[1].individuals;
+	inds = inds[inds.tag == Static];
+	rates = c(AntibioticStaticBloodToLymphoid, AntibioticStaticBloodToLiver, AntibioticStaticBloodToSpleen, AntibioticStaticBloodToMeninges);
+	destinations = c(3, 4, 5, 6);
+	M = sum(rates);
+	numMigrants = rbinom(1, inds.size(), M);
+	if (numMigrants)
+	{
+		newMigrants = sample(inds, numMigrants);
+		newSubpopID = c(newSubpopID, sample(destinations, size=numMigrants, replace=T, weights=rates));
+		migrants = c(migrants, newMigrants);
+	}
+	
+	// lymphoid
+	inds = sim.subpopulations[2].individuals;
+	inds = inds[inds.tag == Static];
+	rates = c(AntibioticStaticLymphoidToLiver, AntibioticStaticLymphoidToSpleen, rep(AntibioticStaticOrganToSite, infectionSiteNum));
+	destinations = c(4, 5, 7:(7 + infectionSiteNum - 1));
+	M = sum(rates);
+	numMigrants = rbinom(1, inds.size(), M);
+	if (numMigrants)
+	{
+		newMigrants = sample(inds, numMigrants);
+		newSubpopID = c(newSubpopID, sample(destinations, size=numMigrants, replace=T, weights=rates));
+		migrants = c(migrants, newMigrants);
+	}
+	
+	// liver
+	inds = sim.subpopulations[3].individuals;
+	inds = inds[inds.tag == Static];
+	rates = c(AntibioticStaticLiverToBlood, rep(AntibioticStaticOrganToSite, infectionSiteNum));
+	destinations = c(2, (7 + infectionSiteNum):(7 + 2 * infectionSiteNum - 1));
+	M = sum(rates);
+	numMigrants = rbinom(1, inds.size(), M);
+	if (numMigrants)
+	{
+		newMigrants = sample(inds, numMigrants);
+		newSubpopID = c(newSubpopID, sample(destinations, size=numMigrants, replace=T, weights=rates));
+		migrants = c(migrants, newMigrants);
+	}
+	
+	// spleen
+	inds = sim.subpopulations[4].individuals;
+	inds = inds[inds.tag == Static];
+	rates = c(AntibioticStaticSpleenToLiver, rep(AntibioticStaticOrganToSite, infectionSiteNum));
+	destinations = c(4, (7 + infectionSiteNum * 2):(7 + 3 * infectionSiteNum - 1));
+	M = sum(rates);
+	numMigrants = rbinom(1, inds.size(), M);
+	if (numMigrants)
+	{
+		newMigrants = sample(inds, numMigrants);
+		newSubpopID = c(newSubpopID, sample(destinations, size=numMigrants, replace=T, weights=rates));
+		migrants = c(migrants, newMigrants);
+	}
+	
+	// meninges
+	inds = sim.subpopulations[5].individuals;
+	inds = inds[inds.tag == Static];
+	rates = c(AntibioticStaticMeningesToBlood, rep(AntibioticStaticOrganToSite, infectionSiteNum));
+	destinations = c(2, (7 + 3 * infectionSiteNum):(7 + 4 * infectionSiteNum - 1));
+	M = sum(rates);
+	numMigrants = rbinom(1, inds.size(), M);
+	if (numMigrants)
+	{
+		newMigrants = sample(inds, numMigrants);
+		newSubpopID = c(newSubpopID, sample(destinations, size=numMigrants, replace=T, weights=rates));
+		migrants = c(migrants, newMigrants);
+	}
+	
+	// infection sites
+	for (i in 1:(4 * infectionSiteNum))
+	{
+		inds = sim.subpopulations[5 + i].individuals;
+		inds = inds[inds.tag == Static];
+		site = floor((i - 1) / infectionSiteNum);
+		if (site == 0)
+			destinations = 3;
+		else if (site == 1)
+			destinations = 4;
+		else if (site == 2)
+			destinations = 5;
+		else if (site == 3)
+			destinations = 6;
+		rates = c(AntibioticStaticSiteToOrgan);
+		M = sum(rates);
+		numMigrants = rbinom(1, inds.size(), M);
+		if (numMigrants)
+		{
+			newMigrants = sample(inds, numMigrants);
+			newSubpopID = c(newSubpopID, sample(destinations, size=numMigrants, replace=T, weights=rates));
+			migrants = c(migrants, newMigrants);
+		}
+	}
+	
+	// actual migration
+	if (!isNULL(migrants))
+	{
+		for (subpop in sim.subpopulations)
+			subpop.takeMigrants(migrants[newSubpopID == subpop.id]);
+	}
+}
+
+2: late() // killing
+{
+	// Intestine
+	killBacteria(1, DeathIntestine);
+	degradeAntibioticBactericidal(1, MetabolismBactericidalIntestine);
+	degradeAntibioticStatic(1, MetabolismStaticIntestine);
+	
+	// Blood
+	killBacteria(2, DeathBlood);
+	degradeAntibioticBactericidal(2, MetabolismBactericidalBlood);
+	degradeAntibioticStatic(2, MetabolismStaticBlood);
+	
+	// Lymphoid
+	killBacteria(3, DeathLymphoid);
+	degradeAntibioticBactericidal(3, MetabolismBactericidalLymphoid);
+	degradeAntibioticStatic(3, MetabolismStaticLymphoid);
+	
+	// Liver
+	killBacteria(4, DeathLiver);
+	degradeAntibioticBactericidal(4, MetabolismBactericidalLiver);
+	degradeAntibioticStatic(4, MetabolismStaticLiver);
+	
+	// Spleen
+	killBacteria(5, DeathSpleen);
+	degradeAntibioticBactericidal(5, MetabolismBactericidalSpleen);
+	degradeAntibioticStatic(5, MetabolismStaticSpleen);
+	
+	// Meninges
+	killBacteria(6, DeathMeninges);
+	degradeAntibioticBactericidal(6, MetabolismBactericidalMeninges);
+	degradeAntibioticStatic(6, MetabolismStaticMeninges);
+	
+	// Lymphoid sites
+	for (i in 7:(7 + infectionSiteNum - 1))
+	{
+		killBacteria(i, DeathLymphoidSite);
+		degradeAntibioticBactericidal(i, MetabolismBactericidalLymphoidSite);
+		degradeAntibioticStatic(i, MetabolismStaticLymphoidSite);
+	}
+	
+	// Liver sites
+	for (i in (7 + infectionSiteNum):(7 + 2 * infectionSiteNum - 1))
+	{
+		killBacteria(i, DeathLiverSite);
+		degradeAntibioticBactericidal(i, MetabolismBactericidalLiverSite);
+		degradeAntibioticStatic(i, MetabolismStaticLiverSite);
+	}
+	
+	// Spleen sites
+	for (i in (7 + infectionSiteNum * 2):(7 + 3 * infectionSiteNum - 1))
+	{
+		killBacteria(i, DeathSpleenSite);
+		degradeAntibioticBactericidal(i, MetabolismBactericidalSpleenSite);
+		degradeAntibioticStatic(i, MetabolismStaticSpleenSite);
+	}
+	
+	// Meninges sites
+	for (i in (7 + infectionSiteNum * 3):(7 + 4 * infectionSiteNum - 1))
+	{
+		killBacteria(i, DeathMeningesSite);
+		degradeAntibioticBactericidal(i, MetabolismBactericidalMeningesSite);
+		degradeAntibioticStatic(i, MetabolismStaticMeningesSite);
+	}
+/// Counting
+totalbac = 0;
+for (i in 1:(6+4*infectionSiteNum))
+{
+inds = sim.subpopulations[i-1].individuals;
+inds = inds[inds.tag == bacterium];
+totalbac = totalbac + inds.size();
+
+}
+if (totalbac == 0 & sim.getValue("Finished") == 0)
+{
+sim.rescheduleScriptBlock(s1, start=sim.generation+1, end=sim.generation+1);
+sim.setValue("Finished",1);
+}
+
+
+inds = p2.individuals;
+inds = inds[inds.tag==bacterium];
+	sim.setValue("Max2",max(inds.size(), sim.getValue("Max2")));
+
+}
+
+function (void)bacteriaReproduction(integer id, numeric rate)
+{
+	inds = sim.subpopulations[id - 1].individuals;
+	inds = inds[inds.tag == bacterium];
+	numNew = rbinom(1, inds.size(), rate);
+	if (numNew)
+	{
+		for (i in 1:numNew)
+		{
+			new2 = sim.subpopulations[id - 1].addEmpty();
+			new2.tag = bacterium;
+			new2.color = "blue";
+		}
+	}
+}
+
+function (void)killBacteria(integer id, numeric rate)
+{
+	inds = sim.subpopulations[id - 1].individuals;
+	bact = inds[inds.tag == bacterium];
+	anticidal = inds[inds.tag == Bactericidal];
+	if (bact.size())
+	{
+		M = rate * ((AntibioticBactericidalStrength * anticidal.size() + bact.size()) / bact.size());
+		M = (floor(sim.generation / 288) + 1) * M;
+		M = min(M, 1.0);
+	}
+	else
+	{
+		M = 0.0;
+	}
+	numKilled = rbinom(1, bact.size(), M);
+	if (numKilled)
+	{
+		sample(bact, numKilled).fitnessScaling = 0;
+	}
+}
+
+function (void)addAntibiotic( * tag, integer dose, * compartment)
+{
+	if (dose == 0)
+		return;
+	if (tag == Bactericidal)
+	{
+		color = "pink";
+	}
+	else
+	{
+		color = "green";
+	}
+	for (i in 1:dose)
+	{
+		new2 = compartment.addEmpty();
+		new2.tag = tag;
+		new2.color = color;
+	}
+}
+
+function (void)degradeAntibioticBactericidal(integer id, numeric rate)
+{
+	inds = sim.subpopulations[id - 1].individuals;
+	anti = inds[inds.tag == Bactericidal];
+	numKilled = rbinom(1, anti.size(), rate);
+	if (numKilled)
+	{
+		sample(anti, numKilled).fitnessScaling = 0;
+	}
+}
+
+function (void)degradeAntibioticStatic(integer id, numeric rate)
+{
+	inds = sim.subpopulations[id - 1].individuals;
+	anti = inds[inds.tag == Static];
+	numKilled = rbinom(1, anti.size(), rate);
+	if (numKilled)
+	{
+		sample(anti, numKilled).fitnessScaling = 0;
+	}
+}
+
+s1 10000 late()
+{
+	catn(sim.getValue("Max2"));
+}
